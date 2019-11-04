@@ -25,15 +25,22 @@ class Unicheck implements IClient
 	 */
 	protected $client;
 
-	/**
-	 * Unicheck constructor.
-	 *
-	 * @param string $key Valid API key 16-32 chars
-	 * @param string $secret Valid API secret 32-64 chars
-	 */
-	public function __construct($key, $secret)
+    /**
+     * Unicheck constructor.
+     *
+     * @param string $key Valid API key 16-32 chars
+     * @param string $secret Valid API secret 32-64 chars
+     * @param string|null $host Custom API host
+     */
+	public function __construct($key, $secret, $host = null)
 	{
-		$this->client = new Client($key, $secret);
+	    $options = [];
+
+	    if (null !== $host) {
+	        $options['host'] = rtrim($host, '/');
+	    }
+
+	    $this->client = new Client($key, $secret, $options);
 	}
 
 	/**
