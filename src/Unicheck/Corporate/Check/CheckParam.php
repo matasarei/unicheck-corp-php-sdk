@@ -58,6 +58,21 @@ class CheckParam
     protected $exclude_references = false;
 
     /**
+     * @var bool
+     */
+    protected $exclude_self_plagiarism = false;
+
+    /**
+     * @var int
+     */
+    protected $words_sensitivity = 8;
+
+    /**
+     * @var float
+     */
+    protected $sensitivity = 0;
+
+    /**
      * CheckParam constructor.
      * @param $file_id
      * @throws CheckException
@@ -72,6 +87,38 @@ class CheckParam
         $this->file_id = $file_id;
         $this->type = self::TYPE_WEB; // set default type - WEB
 
+    }
+
+    /**
+     * @param bool $exclude_self_plagiarism
+     */
+    public function setExcludeSelfPlagiarism($exclude_self_plagiarism)
+    {
+        $this->exclude_self_plagiarism = (bool) $exclude_self_plagiarism;
+    }
+
+    /**
+     * @param float $sensitivity
+     */
+    public function setSensitivity($sensitivity)
+    {
+        if ($sensitivity < 0 || $sensitivity > 1) {
+            throw new \InvalidArgumentException('Unexpected value, sensitivity must be a float from 0 to 1.0');
+        }
+
+        $this->sensitivity = (float)$sensitivity;
+    }
+
+    /**
+     * @param int $words_sensitivity
+     */
+    public function setWordsSensitivity($words_sensitivity)
+    {
+        if ($words_sensitivity < 8 || $words_sensitivity > 999) {
+            throw new \InvalidArgumentException('Unexpected value, words sensitivity must be an integer from 8 to 9999');
+        }
+
+        $this->words_sensitivity = $words_sensitivity;
     }
 
     /**
@@ -154,27 +201,31 @@ class CheckParam
      */
     public function mergeParams()
     {
-        $params =
-            [
-                'file_id' => $this->file_id,
-                'type' => $this->type,
+        $options = [
+            'words_sensitivity' => $this->words_sensitivity,
+            'exclude_citations' => $this->exclude_citations ? 1 : 0,
+            'exclude_references' => $this->exclude_references ? 1 : 0,
+            'exclude_self_plagiarism' => $this->exclude_self_plagiarism ? 1 : 0
+        ];
 
-                'exclude_citations' => $this->exclude_citations,
-                'exclude_references' => $this->exclude_references
-            ];
+        if ($this->sensitivity > 0) {
+            $options['sensitivity'] = $this->sensitivity;
+        }
 
-        if( !empty($this->versus_files) )
-        {
+        $params = [
+            'file_id' => $this->file_id,
+            'type' => $this->type,
+            'options' => $options
+        ];
+
+        if (!empty($this->versus_files)) {
             $params['versus_files'] = $this->versus_files;
         }
 
-        if( !empty($this->callback_url) )
-        {
+        if (!empty($this->callback_url)) {
             $params['callback_url'] = $this->callback_url;
         }
 
         return $params;
     }
-
-
 }
